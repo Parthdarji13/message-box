@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import "@/app/globals.css";
 import AuthProvider from "@/context/AuthProvider";
 import { Toaster } from "@/components/ui/toaster";
+import Navbar from "@/components/Navbar"; // 1. Import the Navbar
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +32,10 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          {children}
+          <Navbar /> {/* 2. Place Navbar here */}
+          <main className="flex-grow">
+            {children}
+          </main>
           <Toaster />
         </AuthProvider>
       </body>
