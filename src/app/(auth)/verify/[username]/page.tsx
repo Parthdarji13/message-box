@@ -2,40 +2,42 @@
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { signinSchema } from '@/schemas/signinschema';
+import { verifySchema } from '@/schemas/verifyschema';
+import { ApiResponse } from '@/types/ApiResponse';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { signIn } from 'next-auth/react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import axios, { AxiosError } from 'axios';
+import { Loader2 } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { Loader2 } from 'lucide-react';
 
-export default function SignInPage() {
+export default function VerifyAccount() {
     const router = useRouter();
+    const params = useParams<{ username: string }>();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const form = useForm<z.infer<typeof signinSchema>>({
-        resolver: zodResolver(signinSchema),
-        defaultValues: { identifier: '', password: '' },
+    const form = useForm<z.infer<typeof verifySchema>>({
+        resolver: zodResolver(verifySchema),
+        defaultValues: { code: '' },
     });
 
-    const onSubmit = async (data: z.infer<typeof signinSchema>) => {
+    const onSubmit = async (data: z.infer<typeof verifySchema>) => {
         setIsSubmitting(true);
         try {
-            const result = await signIn('credentials', {
-                redirect: false,
-                identifier: data.identifier,
-                password: data.password,
+            const response = await axios.post<ApiResponse>(`/api/verify-code`, {
+                username: params.username,
+                code: data.code,
             });
-
-            if (result?.error) {
-                toast({ title: 'Login Failed', description: result.error });
-            } else {
-                router.replace('/dashboard');
-            }
+            toast({ title: 'Success', description: response.data.message });
+            router.replace('/sign-in');
+        } catch (error) {
+            const axiosError = error as AxiosError<ApiResponse>;
+            toast({
+                title: 'Verification Failed',
+                description: axiosError.response?.data.message ?? 'An error occurred.',
+            });
         } finally {
             setIsSubmitting(false);
         }
@@ -45,7 +47,7 @@ export default function SignInPage() {
         <>
         <style>{`
             @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
-            .signin-root * { font-family: 'Space Grotesk', sans-serif; box-sizing: border-box; }
+            .verify-root * { font-family: 'Space Grotesk', sans-serif; box-sizing: border-box; }
             @keyframes spin { to { transform: rotate(360deg); } }
             @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
             @keyframes scanline { 0% { top: -10%; } 100% { top: 110%; } }
@@ -69,12 +71,12 @@ export default function SignInPage() {
                 border: 1px solid rgba(0,255,200,0.15);
                 border-radius: 4px;
                 padding: 0 16px;
-                color: #e0fff8; font-size: 14px;
+                color: #e0fff8; font-size: 18px;
+                letter-spacing: 8px; text-align: center;
                 outline: none; transition: all 0.2s;
                 font-family: 'Space Grotesk', sans-serif;
-                letter-spacing: 0.5px;
             }
-            .neon-input::placeholder { color: rgba(0,255,200,0.2); }
+            .neon-input::placeholder { color: rgba(0,255,200,0.2); letter-spacing: 4px; font-size: 14px; }
             .neon-input:focus {
                 border-color: rgba(0,255,200,0.6);
                 background: rgba(0,255,200,0.05);
@@ -103,11 +105,9 @@ export default function SignInPage() {
             .corner-tr { top: -1px; right: -1px; border-top: 2px solid #00ffc8; border-right: 2px solid #00ffc8; }
             .corner-bl { bottom: -1px; left: -1px; border-bottom: 2px solid #00ffc8; border-left: 2px solid #00ffc8; }
             .corner-br { bottom: -1px; right: -1px; border-bottom: 2px solid #00ffc8; border-right: 2px solid #00ffc8; }
-            .signup-link { color: rgba(0,255,200,0.5); text-decoration: none; font-size: 13px; letter-spacing: 0.5px; transition: color 0.2s; border-bottom: 1px solid rgba(0,255,200,0.2); padding-bottom: 1px; }
-            .signup-link:hover { color: #00ffc8; border-bottom-color: #00ffc8; }
         `}</style>
 
-        <div className="signin-root" style={{
+        <div className="verify-root" style={{
             minHeight: '100vh', background: '#060a0d',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             padding: '2rem', position: 'relative', overflow: 'hidden'
@@ -115,9 +115,8 @@ export default function SignInPage() {
             <div className="grid-bg" />
             <div className="scanline" />
 
-            {/* Glow orbs */}
+            {/* Glow */}
             <div style={{ position: 'absolute', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,255,200,0.08), transparent 70%)', top: '-100px', right: '10%', filter: 'blur(40px)', pointerEvents: 'none' }} />
-            <div style={{ position: 'absolute', width: '200px', height: '200px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(120,0,255,0.1), transparent 70%)', bottom: '10%', left: '5%', filter: 'blur(40px)', pointerEvents: 'none' }} />
 
             <div style={{ width: '100%', maxWidth: '400px', position: 'relative', zIndex: 10 }}>
                 <div style={{
@@ -136,56 +135,33 @@ export default function SignInPage() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#00ffc8', boxShadow: '0 0 10px #00ffc8', animation: 'blink 2s ease-in-out infinite' }} />
                             <span style={{ fontSize: '11px', color: 'rgba(0,255,200,0.5)', letterSpacing: '3px', textTransform: 'uppercase' }}>
-                                System Access
+                                Verification
                             </span>
                         </div>
                         <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#ffffff', letterSpacing: '-0.5px', lineHeight: 1.2 }}>
-                            Welcome<br />
-                            <span style={{ color: '#00ffc8' }}>Back_</span>
+                            Verify<br />
+                            <span style={{ color: '#00ffc8' }}>Account_</span>
                         </h1>
                         <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.3)', marginTop: '8px' }}>
-                            Sign in to your account
+                            Enter the 6-digit code sent to your email
                         </p>
                     </div>
 
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-
-                            {/* Identifier */}
+                        <form onSubmit={form.handleSubmit(onSubmit)} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                             <FormField
-                                name="identifier"
+                                name="code"
                                 control={form.control}
                                 render={({ field }: any) => (
                                     <FormItem>
                                         <FormLabel style={{ fontSize: '11px', color: 'rgba(0,255,200,0.5)', letterSpacing: '2px', textTransform: 'uppercase' }}>
-                                            Email or Username
+                                            Verification Code
                                         </FormLabel>
                                         <FormControl>
                                             <input
                                                 className="neon-input"
-                                                placeholder="email or username"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage style={{ fontSize: '11px', color: '#ff4466' }} />
-                                    </FormItem>
-                                )}
-                            />
-
-                            {/* Password */}
-                            <FormField
-                                name="password"
-                                control={form.control}
-                                render={({ field }: any) => (
-                                    <FormItem>
-                                        <FormLabel style={{ fontSize: '11px', color: 'rgba(0,255,200,0.5)', letterSpacing: '2px', textTransform: 'uppercase' }}>
-                                            Password
-                                        </FormLabel>
-                                        <FormControl>
-                                            <input
-                                                className="neon-input"
-                                                type="password"
-                                                placeholder="••••••••"
+                                                placeholder="• • • • • •"
+                                                maxLength={6}
                                                 {...field}
                                             />
                                         </FormControl>
@@ -198,28 +174,14 @@ export default function SignInPage() {
                                 type="submit"
                                 disabled={isSubmitting}
                                 className="neon-btn"
-                                style={{ marginTop: '0.5rem', opacity: isSubmitting ? 0.7 : 1 }}
+                                style={{ opacity: isSubmitting ? 0.7 : 1 }}
                             >
                                 {isSubmitting ? (
-                                    <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Authenticating...</>
-                                ) : 'Access System'}
+                                    <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Verifying...</>
+                                ) : 'Verify Access'}
                             </button>
                         </form>
                     </Form>
-
-                    {/* Divider */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '1.5rem 0 1rem' }}>
-                        <div style={{ flex: 1, height: '1px', background: 'rgba(0,255,200,0.08)' }} />
-                        <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.2)', letterSpacing: '1px' }}>OR</span>
-                        <div style={{ flex: 1, height: '1px', background: 'rgba(0,255,200,0.08)' }} />
-                    </div>
-
-                    <p style={{ textAlign: 'center', fontSize: '13px', color: 'rgba(255,255,255,0.3)' }}>
-                        No account?{' '}
-                        <Link href="/sign-up" className="signup-link">
-                            Create one
-                        </Link>
-                    </p>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 4px 0' }}>

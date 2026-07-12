@@ -1,11 +1,11 @@
 import dbConnect from "@/lib/dbConnect";
 import UserModel from "@/model/user";
 import { z } from "zod";
-import { usernamevalidation } from "@/schemas/signupschema";
+import { usernameValidation } from "@/schemas/signupschema";
 
 // Create a schema for the query parameter validation
 const UsernameQuerySchema = z.object({
-  username: usernamevalidation,
+  username: usernameValidation,
 });
 
 export async function GET(request: Request) {

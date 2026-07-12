@@ -1,6 +1,6 @@
-import {z} from "zod";
+import { z } from "zod";
 
-export const signinschema = z.object({
-    identifier : z.string(),
-    password : z.string(),
+export const signinSchema = z.object({
+    identifier: z.string().min(1, "Email or username is required"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
 })
