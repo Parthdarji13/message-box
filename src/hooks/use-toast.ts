@@ -10,6 +10,7 @@ type ToasterToast = ToastProps & {
   title?: React.ReactNode
   description?: React.ReactNode
   action?: React.ReactElement
+  variant?: 'default' | 'destructive'
 }
 
 let count = 0

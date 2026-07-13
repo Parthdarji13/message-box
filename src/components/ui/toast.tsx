@@ -19,4 +19,6 @@ export {
   ToastClose,
   ToastAction,
 }
-export type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>
+export type ToastProps = React.ComponentPropsWithoutRef<typeof Toast> & {
+  variant?: 'default' | 'destructive'
+}
