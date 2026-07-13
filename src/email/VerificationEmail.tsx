@@ -21,7 +21,7 @@ export default function VerificationEmail({ username, otp }: VerificationEmailPr
                 borderRadius: "8px 8px 0 0",
                 textAlign: "center",
             }}>
-                <h1 style={{ color: "white", margin: 0 }}>MsgBox</h1>
+                <h1 style={{ color: "white", margin: 0 }}>MESSAGE BOX</h1>
             </div>
 
             {/* Body */}
@@ -62,14 +62,14 @@ export default function VerificationEmail({ username, otp }: VerificationEmailPr
                 </p>
 
                 <p style={{ color: "#6B7280", fontSize: "14px" }}>
-                    If you did not sign up for MsgBox, please ignore this email.
+                    If you did not sign up for MESSAGE BOX, please ignore this email.
                 </p>
             </div>
 
             {/* Footer */}
             <div style={{ textAlign: "center", marginTop: "20px" }}>
                 <p style={{ color: "#9CA3AF", fontSize: "12px" }}>
-                    &copy; 2025 MsgBox. All rights reserved.
+                    &copy; 2026 MESSAGE BOX. All rights reserved.
                 </p>
             </div>
         </div>

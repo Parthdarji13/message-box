@@ -5,36 +5,85 @@ import UserModel from "@/model/user";
 import { User } from "next-auth";
 import mongoose from "mongoose";
 
-export async function GET(request: Request) {
-    await dbConnect();
+export async function GET() {
+  await dbConnect();
+
+  try {
     const session = await getServerSession(authOptions);
-    const user: User = session?.user as User;
 
     if (!session || !session.user) {
-        return Response.json({ success: false, message: "Not Authenticated" }, { status: 401 });
+      return Response.json(
+        {
+          success: false,
+          message: "Not Authenticated",
+        },
+        { status: 401 }
+      );
     }
 
-    // Convert string ID to MongoDB ObjectId for aggregation
+    const user = session.user as User;
+
     const userId = new mongoose.Types.ObjectId(user._id);
 
-    try {
-        const userWithMessages = await UserModel.aggregate([
-            { $match: { _id: userId } },
-            { $unwind: "$messages" },
-            { $sort: { "messages.createdAt": -1 } },
-            { $group: { _id: "$_id", messages: { $push: "$messages" } } }
-        ]);
+    const userWithMessages = await UserModel.aggregate([
+      {
+        $match: {
+          _id: userId,
+        },
+      },
+      {
+        $unwind: {
+          path: "$messages",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $sort: {
+          "messages.createdAt": -1,
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          messages: {
+            $push: "$messages",
+          },
+        },
+      },
+    ]);
 
-        if (!userWithMessages || userWithMessages.length === 0) {
-            return Response.json({ success: false, message: "No messages found" }, { status: 404 });
-        }
-
-        return Response.json({ 
-            success: true, 
-            messages: userWithMessages[0].messages 
-        }, { status: 200 });
-
-    } catch (error) {
-        return Response.json({ success: false, message: "Error fetching messages" }, { status: 500 });
+    // User exists but has no messages
+    if (!userWithMessages.length) {
+      return Response.json(
+        {
+          success: true,
+          messages: [],
+        },
+        { status: 200 }
+      );
     }
+
+    // Remove null values if there are no messages
+    const messages = userWithMessages[0].messages.filter(
+      (message: any) => message !== null
+    );
+
+    return Response.json(
+      {
+        success: true,
+        messages,
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("GET MESSAGES ERROR:", error);
+
+    return Response.json(
+      {
+        success: false,
+        message: "Error fetching messages",
+      },
+      { status: 500 }
+    );
+  }
 }
