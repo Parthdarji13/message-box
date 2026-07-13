@@ -1,7 +1,7 @@
 'use client';
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { signinSchema } from '@/schemas/signinschema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
@@ -14,7 +14,6 @@ import { Loader2 } from 'lucide-react';
 
 export default function SignInPage() {
     const router = useRouter();
-    const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm<z.infer<typeof signinSchema>>({
@@ -32,7 +31,7 @@ export default function SignInPage() {
             });
 
             if (result?.error) {
-                toast({ title: 'Login Failed', description: result.error });
+                toast.error(result.error);
             } else {
                 router.replace('/dashboard');
             }

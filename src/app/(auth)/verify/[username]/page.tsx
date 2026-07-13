@@ -1,7 +1,7 @@
 'use client';
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { verifySchema } from '@/schemas/verifyschema';
 import { ApiResponse } from '@/types/ApiResponse';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,7 +15,6 @@ import * as z from 'zod';
 export default function VerifyAccount() {
     const router = useRouter();
     const params = useParams<{ username: string }>();
-    const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const form = useForm<z.infer<typeof verifySchema>>({
@@ -30,14 +29,11 @@ export default function VerifyAccount() {
                 username: params.username,
                 code: data.code,
             });
-            toast({ title: 'Success', description: response.data.message });
+            toast.success(response.data.message);
             router.replace('/sign-in');
         } catch (error) {
             const axiosError = error as AxiosError<ApiResponse>;
-            toast({
-                title: 'Verification Failed',
-                description: axiosError.response?.data.message ?? 'An error occurred.',
-            });
+            toast.error(axiosError.response?.data.message ?? 'An error occurred.');
         } finally {
             setIsSubmitting(false);
         }

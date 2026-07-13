@@ -4,7 +4,7 @@ import React from 'react';
 import axios from 'axios';
 import { X } from 'lucide-react';
 import { Button } from './ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Message } from '@/model/user'; // Your Message interface
 
 type MessageCardProps = {
@@ -13,15 +13,11 @@ type MessageCardProps = {
 };
 
 export function MessageCard({ message, onMessageDelete }: MessageCardProps) {
-  const { toast } = useToast();
-
   const handleDeleteConfirm = async () => {
     try {
       // In next video, we'll build this backend endpoint
       const response = await axios.delete(`/api/delete-message/${message._id}`);
-      toast({
-        title: response.data.message,
-      });
+      toast.success(response.data.message);
       // Update the parent component's state
       const messageId = String(message._id);
       onMessageDelete(messageId);

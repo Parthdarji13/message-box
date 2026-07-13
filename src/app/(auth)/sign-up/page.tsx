@@ -6,7 +6,7 @@ import * as z from "zod"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useDebounceCallback } from 'usehooks-ts'
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { signUpSchema } from "@/schemas/signupschema"
 import axios, { AxiosError } from 'axios'
@@ -21,7 +21,6 @@ export default function SignUpPage() {
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const debounced = useDebounceCallback(setUsername, 300)
-    const { toast } = useToast()
     const router = useRouter()
 
     const form = useForm<z.infer<typeof signUpSchema>>({
@@ -52,11 +51,11 @@ export default function SignUpPage() {
         setIsSubmitting(true)
         try {
             const response = await axios.post<ApiResponse>('/api/sign-up', data)
-            toast({ title: 'Success', description: response.data.message })
+            toast.success(response.data.message)
             router.replace(`/verify/${username}`)
         } catch (error) {
             const axiosError = error as AxiosError<ApiResponse>
-            toast({ title: "Signup failed", description: axiosError.response?.data.message })
+            toast.error(axiosError.response?.data.message)
         } finally {
             setIsSubmitting(false)
         }

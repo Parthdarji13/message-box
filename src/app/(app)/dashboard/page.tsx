@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Message } from '@/model/user';
 import { acceptMessageschema } from '@/schemas/acceptMessageschema';
 import { ApiResponse } from '@/types/ApiResponse';
@@ -19,16 +19,14 @@ function UserDashboard() {
     const [isSwitchLoading, setIsSwitchLoading] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    const { toast } = useToast();
-
     const handleDeleteMessage = async (messageId: string) => {
         try {
             await axios.delete(`/api/delete-message/${messageId}`);
             setMessages(messages.filter((message) => (message as any)._id !== messageId));
-            toast({ title: 'Success', description: 'Message deleted' });
+            toast.success('Message deleted');
         } catch (error) {
             const axiosError = error as AxiosError<ApiResponse>;
-            toast({ title: 'Error', description: axiosError.response?.data.message ?? 'Failed to delete message' });
+            toast.error(axiosError.response?.data.message ?? 'Failed to delete message');
         }
     };
 
@@ -49,7 +47,7 @@ const { watch, setValue } = form;
             setValue('acceptMessages', response.data.isAcceptingMessages ?? false);
         } catch (error) {
             const axiosError = error as AxiosError<ApiResponse>;
-            toast({ title: 'Error', description: axiosError.response?.data.message ?? 'Failed to fetch settings' });
+            toast.error(axiosError.response?.data.message ?? 'Failed to fetch settings');
         } finally {
             setIsSwitchLoading(false);
         }
@@ -60,10 +58,10 @@ const { watch, setValue } = form;
         try {
             const response = await axios.get<ApiResponse>('/api/get-messages');
             setMessages(response.data.messages || []);
-            if (refresh) toast({ title: 'Refreshed!', description: 'Showing latest messages' });
+            if (refresh) toast.success('Showing latest messages');
         } catch (error) {
             const axiosError = error as AxiosError<ApiResponse>;
-            toast({ title: 'Error', description: axiosError.response?.data.message ?? 'Failed to fetch messages' });
+            toast.error(axiosError.response?.data.message ?? 'Failed to fetch messages');
         } finally {
             setIsLoading(false);
         }
@@ -81,10 +79,10 @@ const { watch, setValue } = form;
                 acceptMessages: !acceptMessages,
             });
             setValue('acceptMessages', response.data.isAcceptingMessages ?? !acceptMessages);
-            toast({ title: response.data.message });
+            toast.info(response.data.message);
         } catch (error) {
             const axiosError = error as AxiosError<ApiResponse>;
-            toast({ title: 'Error', description: axiosError.response?.data.message ?? 'Failed to update settings' });
+            toast.error(axiosError.response?.data.message ?? 'Failed to update settings');
         }
     };
 
@@ -106,7 +104,7 @@ const { watch, setValue } = form;
         navigator.clipboard.writeText(profileUrl);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
-        toast({ title: 'Copied!', description: 'Profile URL copied to clipboard' });
+        toast.success('Profile URL copied to clipboard');
     };
 
     return (

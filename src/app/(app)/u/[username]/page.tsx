@@ -7,13 +7,12 @@ import { useCompletion } from '@ai-sdk/react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CardHeader, CardContent, Card } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export default function SendMessage() {
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { username } = useParams<{ username: string }>();
-  const { toast } = useToast();
 
   // useCompletion hook to handle AI suggestions
   const { complete, completion, isLoading: isSuggestLoading } = useCompletion({
@@ -25,14 +24,10 @@ export default function SendMessage() {
     setIsLoading(true);
     try {
       const response = await axios.post('/api/send-message', { username, content });
-      toast({ title: 'Success', description: response.data.message });
+      toast.success(response.data.message);
       setContent('');
     } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.response?.data.message || 'Failed to send message',
-        variant: 'destructive',
-      });
+      toast.error(error.response?.data.message || 'Failed to send message');
     } finally {
       setIsLoading(false);
     }
