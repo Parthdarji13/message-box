@@ -1,8 +1,16 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY!,
-});
+const fallbackSuggestions = [
+  "What's something that made you smile recently?",
+  "If you could explore anywhere this weekend, where would you go?",
+  "What's a small habit you're trying to build?",
+];
+
+const ai = process.env.GEMINI_API_KEY
+  ? new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+    })
+  : null;
 
 export async function POST() {
   try {
@@ -21,6 +29,16 @@ Example:
 What's a hobby you've recently started? || If you could travel anywhere tomorrow, where would you go? || What's one thing that always makes you smile?
 `;
 
+    if (!ai) {
+      return Response.json(
+        {
+          success: true,
+          message: fallbackSuggestions.join("||"),
+        },
+        { status: 200 }
+      );
+    }
+
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
@@ -29,7 +47,7 @@ What's a hobby you've recently started? || If you could travel anywhere tomorrow
     return Response.json(
       {
         success: true,
-        message: response.text,
+        message: response.text?.trim() || fallbackSuggestions.join("||"),
       },
       { status: 200 }
     );
@@ -38,10 +56,10 @@ What's a hobby you've recently started? || If you could travel anywhere tomorrow
 
     return Response.json(
       {
-        success: false,
-        message: "Failed to generate suggested messages.",
+        success: true,
+        message: fallbackSuggestions.join("||"),
       },
-      { status: 500 }
+      { status: 200 }
     );
   }
 }
