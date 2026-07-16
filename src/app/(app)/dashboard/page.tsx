@@ -10,14 +10,18 @@ import axios, { AxiosError } from 'axios';
 import { Copy, Loader2, LogOut, RefreshCcw, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
 import { User } from 'next-auth';
 import { signOut, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+
+
 
 function UserDashboard() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isSwitchLoading, setIsSwitchLoading] = useState(false);
     const [copied, setCopied] = useState(false);
+    const router = useRouter();
 
     const handleDeleteMessage = async (messageId: string) => {
         try {
@@ -30,7 +34,16 @@ function UserDashboard() {
         }
     };
 
-    const { data: session } = useSession();
+    const { data: session, status, update } = useSession();
+
+    const handleLogout = async () => {
+        try {
+            await signOut({ redirect: false });
+        } finally {
+            router.replace('/sign-in');
+            router.refresh();
+        }
+    };
 
 const form = useForm<{ acceptMessages: boolean }>({
         resolver: zodResolver(acceptMessageschema),
